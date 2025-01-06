@@ -1,7 +1,7 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 
-const { CosmosClient } = require("@azure/cosmos");
+const { CosmosClient, VectorEmbeddingDataType, VectorIndexType, VectorEmbeddingDistanceFunction } = require("@azure/cosmos");
 
 // 자습서에서 사용하는 credential은 aad 인증 코드가 있어야 함. npm @azure/cosmos readme 참고하여 엔드포인트와 키만으로 인증 진행 필요
 // const { DefaultAzureCredential } = require('@azure/identity');
@@ -43,13 +43,60 @@ async function main() {
   const id = "aaaaaaaa-0000-1111-2222-bbbbbbbbbbbb";
   const partitionKey = "Logistics";
   const result = await container.item(id, partitionKey).read();
-  console.log(result);
+  // console.log(result);
 
   /** 컨테이너 내 전체 조회 쿼리 */
   const { resources } = await container.items
     .query("SELECT * from c")
     .fetchAll();
   // console.log('resources:', resources);
+
+  /** 벡터 검색을 위한 벡터 전용 db 및 정책 생성 */
+  const containerName = "vectorTest";
+  const vectorEmbeddingPolicy = {
+    vectorEmbeddings: [
+      // {
+      //   path: "/coverImageVector",
+      //   dataType: VectorEmbeddingDataType.Float32,
+      //   dimensions: 8,
+      //   distanceFunction: VectorEmbeddingDistanceFunction.DotProduct,
+      // },
+      {
+        path: "/contentVector",
+        dataType: VectorEmbeddingDataType.Float32,
+        dimensions: 10,
+        distanceFunction: VectorEmbeddingDistanceFunction.Cosine,
+      },
+    ],
+  };
+  const indexingPolicy = {
+    vectorIndexes: [
+      // { path: "/coverImageVector", type: VectorIndexType.QuantizedFlat },
+      { path: "/contentVector", type: VectorIndexType.DiskANN },
+    ],
+    includedPaths: [
+      {
+        path: "/*",
+      },
+    ],
+    excludedPaths: [
+      // {
+      //   path: "/coverImageVector/*",
+      // },
+      {
+        path: "/contentVector/*",
+      },
+    ],
+  };
+
+  /** 컨테이너 생성 */
+  const { resource } = await database.containers.createIfNotExists({
+    id: containerName,
+    vectorEmbeddingPolicy: vectorEmbeddingPolicy,
+    indexingPolicy: indexingPolicy,
+  });
+
+  console.log('resource: ', resource);
 }
 
 main().catch((err) => {
