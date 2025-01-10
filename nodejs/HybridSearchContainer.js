@@ -31,7 +31,7 @@ async function main() {
         },
       ],
     };
-    // Full-text 검색 정책
+    // full text 정책
     const fullTextPolicy = {
       efaultLanguage: "en-US",
       fullTextPaths: [
@@ -45,7 +45,7 @@ async function main() {
       automatic: true,
       includedPaths: [
         {
-          path: "/*" // 모든 필드 포함
+          path: "/*"
         }
       ],
       excludedPaths: [
@@ -56,19 +56,18 @@ async function main() {
           path: "/contentVector/*",
         }
       ],
-      fullTextIndexes: [
+      fullTextIndexes: [ // full text 인덱스 추가
         {
           path: "/content"
         }
       ],
       vectorIndexes: [
         {
-          path: "/contentVector", // 벡터 필드
+          path: "/contentVector",
           type: VectorIndexType.DiskANN
         }
       ]
     };
-    
 
     /** 벡터 컨테이너 생성 */
     const { resource } = await database.containers.createIfNotExists({
