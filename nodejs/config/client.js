@@ -25,11 +25,11 @@ const cosmosClient = new CosmosClient({
 const getContainer = async () => {
   // 특정 DB 선택
   const { database } = await cosmosClient.databases.createIfNotExists({
-    id: "ragdocs",
+    id: "hybridTest",
   });
   // 특정 컨테이너 (테이블) 선택
   const { container } = await database.containers.createIfNotExists({
-    id: "skelter",
+    id: "ragContainer2",
   });
   return container;
 };
